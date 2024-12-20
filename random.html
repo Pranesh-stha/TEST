@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Random User Fetch</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.css" integrity="sha512-KXol4x3sVoO+8ZsWPFI/r5KBVB/ssCGB5tsv2nVOKwLg33wTFP3fmnXa47FdSVIshVTgsYk/1734xSk9aFIa4A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    .ui.card {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 10px;
+    width: 500px;
+  }
+   .image {
+    flex: 1;
+    max-width: 120px;
+    margin-right: 15px;
+  }
+
+   .image img {
+    border-radius: 5px;
+    width: 100%;
+    height: auto;
+  }
+
+   .content {
+    flex: 2;
+    padding: 5px;
+  }
+
+   .extra.content {
+    flex: 1;
+    padding: 5px;
+  }
+
+   .header {
+    font-size: 1.5em;
+    margin-bottom: 5px;
+  }
+
+   .meta {
+    font-size: 0.9em;
+    color: gray;
+  }
+
+  </style>
+</head>
+<body>
+  <div id="place" class="ui container" style="margin-top: 20px;">
+    <button class="ui primary button" id="fetchButton" onclick="fetchUsers()">Fetch Users</button>
+    <div class="ui input" style="margin-top: 20px;">
+      <input type="text" id="searchInput" placeholder="Search by name..." onkeyup="handleKeyPress(event)">
+    </div>
+    <button class="ui secondary button" id="searchButton" onclick="searchUser()">Search</button>
+    <div id="userCard" class="ui card" style="margin-top: 20px;"></div>
+  </div>
+
+  <script>
+    async function fetchUsers() {
+      try {
+        const response = await fetch('https://randomuser.me/api/?results=10');
+        const data = await response.json();
+        const users = data.results;
+
+        localStorage.setItem('users', JSON.stringify(users));
+
+        document.getElementById('userCard').innerHTML = `<div class="ui message">Fetched ${users.length} users. Use the search bar to find users.</div>`;
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    }
+
+    function searchUser() {
+      const searchInput = document.getElementById('searchInput').value.toLowerCase();
+      const users = JSON.parse(localStorage.getItem('users')) || [];
+
+      const user = users.find(u => 
+        `${u.name.first.toLowerCase()} ${u.name.last.toLowerCase()}`.includes(searchInput)
+      );
+
+      if (user) {
+        const userHtml = `
+          <div class="image">
+            <img src="${user.picture.large}" alt="User Picture">
+          </div class="information">
+          <div class="content">
+            <a class="header">${user.name.first} ${user.name.last}</a>
+            <div class="meta">
+              <span class="date">User ID: ${user.login.uuid}</span>
+            </div>
+            
+          </div>
+          <div class="extra content">
+            <i class="phone icon"></i> ${user.phone}
+            <br>
+            <i class="mail icon"></i> ${user.email}
+          </div>
+        `;
+
+        document.getElementById('userCard').innerHTML = userHtml;
+      } else {
+        document.getElementById('userCard').innerHTML = `<div class="ui message">No user found. Try another name.</div>`;
+      }
+    }
+
+    function handleKeyPress(event) {
+      if (event.key === 'Enter') {
+        searchUser();
+      }
+    }
+
+  </script>
+
+  <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.js" integrity="sha512-Xo0Jh8MsOn72LGV8kU5LsclG7SUzJsWGhXbWcYs2MAmChkQzwiW/yTQwdJ8w6UA9C6EVG18GHb/TrYpYCjyAQw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</body>
+</html>
